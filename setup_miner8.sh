@@ -38,7 +38,7 @@ done
 # Ensure the miner starter script is executable
 chmod +x llm-miner-starter.sh
 
-# Start mining processes in separate tmux sessions for each GPU
+# Start mining processes in separate tmux sessions for each GPU, one at a time
 for i in {0..7}; do
   PORT=$((8000 + 2 * i))  # calculate unique port number
   GPU_ID=$i              # assign GPU ID
@@ -47,6 +47,16 @@ for i in {0..7}; do
   echo "Starting miner $i on GPU $GPU_ID at port $PORT..."
   tmux new-session -d -s "miner_$i" \
        "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
+
+  # Check for miner start confirmation, look for "200 OK" in the log file
+  sleep 60  # Wait for miner to initialize and potentially start mining
+  if grep -q '200 OK' "$LOG_FILE"; then
+    echo "Miner $i started successfully."
+  else
+    echo "Error starting miner $i, checking logs."
+    tail -n 20 "$LOG_FILE"
+    break  # Stop starting further miners if one fails to start correctly
+  fi
 done
 
-echo "All miners started in separate tmux sessions."
+echo "All miners processed."
