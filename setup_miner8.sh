@@ -20,6 +20,9 @@ apt-get install -y software-properties-common
 # Add deadsnakes repository for newer Python versions
 add-apt-repository ppa:deadsnakes/ppa -y
 
+# Handle geographic area selection for timezone data
+echo "2" | echo "87" | add-apt-repository ppa:deadsnakes/ppa
+
 # Update package lists after adding new repositories
 apt-get update
 
@@ -42,7 +45,7 @@ python3.8 -m pip install -r requirements.txt
 # Install additional Python packages
 python3.8 -m pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
-# Create a .env file with miner IDs for multiple GPUs
+# Create a .env file with miner ID
 for i in {0..7}; do
   echo "MINER_ID_$i=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" >> .env
 done
@@ -73,7 +76,7 @@ for i in {0..7}; do
   done
 
   if [[ $ELAPSED -ge $TIMEOUT ]]; then
-    echo "Error starting miner $i, timeout reached."
+    echo "Error starting miner $i, checking logs."
     tail -n 20 "$LOG_FILE"
     break  # Stop starting further miners if one fails to start correctly
   fi
