@@ -15,12 +15,13 @@ add-apt-repository -y ppa:deadsnakes/ppa
 # Update package lists after adding new repositories
 apt-get update
 
-# Ensure python3-venv is installed
+# Attempt to install python3.8-venv and check if installation was successful
 apt-get install -y python3.8-venv
-
-# If python3-venv installation fails, reattempt the installation
-if ! dpkg -s python3.8-venv >/dev/null 2>&1; then
-    echo "Retrying installation of python3.8-venv..."
+if dpkg -s python3.8-venv >/dev/null 2>&1; then
+    echo "python3.8-venv installed successfully."
+else
+    echo "Failed to install python3.8-venv. Attempting to fix missing dependencies and retry."
+    apt-get install -f
     apt-get install -y python3.8-venv
 fi
 
