@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Preconfigure selections for timezone settings
-echo "tzdata tzdata/Areas select Americas" | debconf-set-selections
-echo "tzdata tzdata/Zones/Americas select 87" | debconf-set-selections
+# Set non-interactive frontend for debconf to avoid interactive dialogs during package installation
+export DEBIAN_FRONTEND=noninteractive
+
+# Preconfigure selections for tzdata
+echo "tzdata tzdata/Areas select America" | debconf-set-selections
+echo "tzdata tzdata/Zones/America select 87" | debconf-set-selections
 
 # Update the system
 apt-get update
