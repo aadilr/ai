@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Update system and install necessary packages
-apt-get update && apt-get install -y software-properties-common
-sudo add-apt-repository -y ppa:deadsnakes/ppa
-sudo apt-get update
-sudo apt-get install -y python3.8-venv sudo nano tmux jq bc expect
+# Update system and ensure all packages are up-to-date
+apt-get update && apt-get upgrade -y
 
-# Function to configure timezone with expect
+# Install necessary utilities
+apt-get install -y software-properties-common sudo nano tmux jq bc expect
+
+# Configure timezone with expect before any potential prompts during other installations
 expect <<EOF
 spawn sudo dpkg-reconfigure tzdata
 expect "Geographic area:"
@@ -15,6 +15,13 @@ expect "Time zone:"
 send -- "87\r"
 expect eof
 EOF
+
+# Add the Deadsnakes PPA for newer Python versions
+add-apt-repository -y ppa:deadsnakes/ppa
+apt-get update
+
+# Install Python environment
+apt-get install -y python3.8-venv
 
 # Set up Python environment and install dependencies
 python3.8 -m venv venv
