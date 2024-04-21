@@ -42,8 +42,11 @@ chmod +x llm-miner-starter.sh
 for i in {0..7}; do
   PORT=$((8000 + 2 * i))  # calculate unique port number
   GPU_ID=$i              # assign GPU ID
+  LOG_FILE="/workspace/logs/miner_$i.log"
+  mkdir -p /workspace/logs
+  echo "Starting miner $i on GPU $GPU_ID at port $PORT..."
   tmux new-session -d -s "miner_$i" \
-       "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID"
+       "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
 done
 
 echo "All miners started in separate tmux sessions."
