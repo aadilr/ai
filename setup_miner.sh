@@ -1,15 +1,18 @@
 #!/bin/bash
 
 # Update system and install necessary packages
-apt-get update && apt-get install -y sudo nano tmux jq bc python3.8-venv expect
+apt-get update && apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt-get update
+sudo apt-get install -y python3.8-venv sudo nano tmux jq bc expect
 
 # Function to configure timezone with expect
 expect <<EOF
-spawn sudo add-apt-repository -y ppa:deadsnakes/ppa
-expect "Please select the geographic area"
-send "2\r"
-expect "Please select the city or region"
-send "87\r"
+spawn sudo dpkg-reconfigure tzdata
+expect "Geographic area:"
+send -- "2\r"
+expect "Time zone:"
+send -- "87\r"
 expect eof
 EOF
 
