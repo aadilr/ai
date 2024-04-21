@@ -59,8 +59,7 @@ for i in {0..7}; do
   tail -f $LOG_FILE &
 done
 
-# Wait for user input before stopping log tails and script exit
-echo "Press any key to stop tailing logs and exit..."
-read -n 1 -s
-kill $(jobs -p) # Kill all background jobs (tail commands)
-echo "All miners processed. Logs stopped, and script exiting."
+# Keep the script running indefinitely to monitor the logs
+while true; do
+  sleep 60  # Loop every minute to keep the script alive
+done
