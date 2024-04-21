@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Automated selection for geographic area (2 for Americas) and timezone (87)
-echo "2" > /tmp/geo_area.txt
-echo "87" > /tmp/time_zone_num.txt
+# Preconfigure selections for timezone settings
+echo "tzdata tzdata/Areas select Americas" | debconf-set-selections
+echo "tzdata tzdata/Zones/Americas select 87" | debconf-set-selections
 
 # Update the system
 apt-get update
 apt-get upgrade -y
 
 # Install necessary packages
-apt-get install -y sudo nano tmux jq bc
+apt-get install -y sudo nano tmux jq bc debconf-utils
 
 # Clone the miner repository and navigate into it
 git clone https://github.com/heurist-network/miner-release
@@ -32,10 +32,6 @@ pip install torch torchvision torchaudio --extra-index-url https://download.pyto
 # Set up the environment variables
 echo "MINER_ID_0=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" > .env
 
-# Run the miner starter script with automated inputs for geographic area and timezone
+# Run the miner starter script
 chmod +x llm-miner-starter.sh
-./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq < /tmp/geo_area.txt < /tmp/time_zone_num.txt
-
-# Clean up
-rm /tmp/geo_area.txt
-rm /tmp/time_zone_num.txt
+./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq
