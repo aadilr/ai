@@ -16,6 +16,11 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install python-dotenv toml diffusers schedule transformers boto3
 
+# Install Python 3.8 and set up virtual environment (if necessary)
+sudo apt install -y python3.8-venv
+python3.8 -m venv venv
+source venv/bin/activate
+
 # Install PyTorch with CUDA support
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
