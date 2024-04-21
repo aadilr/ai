@@ -14,8 +14,20 @@ cd /workspace
 apt-get update
 apt-get upgrade -y
 
-# Install necessary packages
-apt-get install -y sudo tmux jq bc python3-pip python3-venv
+# Install software properties (common)
+apt-get install -y software-properties-common
+
+# Add deadsnakes repository for newer Python versions
+add-apt-repository ppa:deadsnakes/ppa -y
+
+# Update package lists after adding new repositories
+apt-get update
+
+# Install the required Python version and other necessary packages
+apt-get install -y python3.8 python3.8-venv sudo tmux jq bc
+
+# Install pip for the specified Python version
+apt-get install -y python3-pip
 
 # Clone the miner software from the GitHub repository
 git clone https://github.com/heurist-network/miner-release
@@ -24,11 +36,11 @@ git clone https://github.com/heurist-network/miner-release
 cd miner-release
 
 # Install Python dependencies from requirements file
-pip install --upgrade pip
-pip install -r requirements.txt
+python3.8 -m pip install --upgrade pip
+python3.8 -m pip install -r requirements.txt
 
 # Install additional Python packages
-pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
+python3.8 -m pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
 # Create a .env file with miner IDs for multiple GPUs
 for i in {0..7}; do
