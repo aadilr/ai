@@ -1,27 +1,28 @@
 #!/bin/bash
 
+# Set non-interactive to avoid prompts
+export DEBIAN_FRONTEND=noninteractive
+
 # Update system and ensure all packages are up-to-date
 apt-get update && apt-get upgrade -y
 
 # Install necessary utilities
 apt-get install -y software-properties-common sudo nano tmux jq bc expect
 
-# Configure timezone with expect before any potential prompts during other installations
-expect <<EOF
-spawn sudo dpkg-reconfigure tzdata
-expect "Geographic area:"
-send -- "2\r"
-expect "Time zone:"
-send -- "87\r"
-expect eof
-EOF
-
 # Add the Deadsnakes PPA for newer Python versions
 add-apt-repository -y ppa:deadsnakes/ppa
+
+# Update package lists after adding new repositories
 apt-get update
 
-# Install Python environment
+# Ensure python3-venv is installed
 apt-get install -y python3.8-venv
+
+# If python3-venv installation fails, reattempt the installation
+if ! dpkg -s python3.8-venv >/dev/null 2>&1; then
+    echo "Retrying installation of python3.8-venv..."
+    apt-get install -y python3.8-venv
+fi
 
 # Set up Python environment and install dependencies
 python3.8 -m venv venv
