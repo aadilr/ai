@@ -44,9 +44,16 @@ for i in {0..7}; do
   GPU_ID=$i              # assign GPU ID
   LOG_FILE="/workspace/logs/miner_$i.log"
   mkdir -p /workspace/logs
+
+  # Ensure the log file exists before attempting to tail it
+  touch "$LOG_FILE"
+
   echo "Starting miner $i on GPU $GPU_ID at port $PORT..."
   tmux new-session -d -s "miner_$i" \
        "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
+
+  # Give a brief delay to ensure tmux session starts and logs can be written
+  sleep 10
 
   # Tail the log in background to avoid blocking
   tail -f $LOG_FILE &
