@@ -14,23 +14,8 @@ cd /workspace
 apt-get update
 apt-get upgrade -y
 
-# Install software properties (common)
-apt-get install -y software-properties-common
-
-# Add deadsnakes repository for newer Python versions
-add-apt-repository ppa:deadsnakes/ppa -y
-
-# Handle geographic area selection for timezone data
-echo "2" | echo "87" | add-apt-repository ppa:deadsnakes/ppa
-
-# Update package lists after adding new repositories
-apt-get update
-
-# Install the required Python version and other necessary packages
-apt-get install -y python3.8 python3.8-venv sudo tmux jq bc
-
-# Install pip for the specified Python version
-apt-get install -y python3-pip
+# Install necessary packages
+apt-get install -y sudo tmux jq bc python3-pip python3-venv
 
 # Clone the miner software from the GitHub repository
 git clone https://github.com/heurist-network/miner-release
@@ -39,13 +24,13 @@ git clone https://github.com/heurist-network/miner-release
 cd miner-release
 
 # Install Python dependencies from requirements file
-python3.8 -m pip install --upgrade pip
-python3.8 -m pip install -r requirements.txt
+pip install --upgrade pip
+pip install -r requirements.txt
 
 # Install additional Python packages
-python3.8 -m pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
+pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
-# Create a .env file with miner ID
+# Create a .env file with miner IDs for multiple GPUs
 for i in {0..7}; do
   echo "MINER_ID_$i=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" >> .env
 done
@@ -63,23 +48,12 @@ for i in {0..7}; do
   tmux new-session -d -s "miner_$i" \
        "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
 
-  # Wait for miner to initialize and potentially start mining
-  TIMEOUT=300 # 5 minutes timeout
-  ELAPSED=0
-  while [[ $ELAPSED -lt $TIMEOUT ]]; do
-    if grep -q '200 OK' "$LOG_FILE"; then
-      echo "Miner $i started successfully."
-      break
-    fi
-    sleep 30
-    ((ELAPSED+=30))
-  done
-
-  if [[ $ELAPSED -ge $TIMEOUT ]]; then
-    echo "Error starting miner $i, checking logs."
-    tail -n 20 "$LOG_FILE"
-    break  # Stop starting further miners if one fails to start correctly
-  fi
+  # Tail the log in background to avoid blocking
+  tail -f $LOG_FILE &
 done
 
-echo "All miners processed."
+# Wait for user input before stopping log tails and script exit
+echo "Press any key to stop tailing logs and exit..."
+read -n 1 -s
+kill $(jobs -p) # Kill all background jobs (tail commands)
+echo "All miners processed. Logs stopped, and script exiting."
