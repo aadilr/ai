@@ -15,7 +15,11 @@ apt-get update
 apt-get upgrade -y
 
 # Install necessary packages
-apt-get install -y sudo tmux jq bc python3-pip python3-venv
+apt-get install -y sudo tmux jq bc python3-pip python3-venv lshw
+
+# Create a Python virtual environment and activate it
+python3 -m venv env
+source env/bin/activate
 
 # Clone the miner software from the GitHub repository
 git clone https://github.com/heurist-network/miner-release
@@ -43,20 +47,20 @@ chmod +x llm-miner-starter.sh
 for i in $(seq 0 $((NUM_GPUS - 1))); do
   PORT=$((8000 + 2 * i))  # calculate unique port number
   GPU_ID=$i              # assign GPU ID
-  LOG_FILE="/workspace/logs/miner_$GPU_ID.log"
+  LOG_FILE="/workspace/logs/miner_$i.log"
   mkdir -p /workspace/logs
   touch "$LOG_FILE"
 
-  echo "Starting miner $GPU_ID on GPU $GPU_ID at port $PORT..."
-  tmux new-session -d -s "miner_$GPU_ID" \
-       "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $GPU_ID --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
+  echo "Starting miner $i on GPU $GPU_ID at port $PORT..."
+  tmux new-session -d -s "miner_$i" \
+       "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
 
   # Check for successful miner startup
   TIMEOUT=600 # 10 minutes timeout
   ELAPSED=0
   while [[ $ELAPSED -lt $TIMEOUT ]]; do
     if grep -q '200 OK' "$LOG_FILE"; then
-      echo "Miner $GPU_ID started successfully."
+      echo "Miner $i started successfully."
       break
     fi
     sleep 30
@@ -64,7 +68,7 @@ for i in $(seq 0 $((NUM_GPUS - 1))); do
   done
 
   if [[ $ELAPSED -ge $TIMEOUT ]]; then
-    echo "Error starting miner $GPU_ID, timeout reached."
+    echo "Error starting miner $i, timeout reached."
     tail -n 20 "$LOG_FILE"
     exit 1  # Exit if any miner fails to start correctly
   fi
