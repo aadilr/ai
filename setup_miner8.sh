@@ -30,44 +30,28 @@ pip install -r requirements.txt
 # Install additional Python packages
 pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
-# Create a .env file with miner IDs for multiple GPUs
-for i in {0..7}; do
-  echo "MINER_ID_$i=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" >> .env
-done
+# Create a .env file with miner ID
+echo "MINER_ID_0=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" > .env
 
 # Ensure the miner starter script is executable
 chmod +x llm-miner-starter.sh
 
-# Start mining processes in separate tmux sessions for each GPU, one at a time
+# Run the miner starter script in a loop for each GPU
 for i in {0..7}; do
-  PORT=$((8000 + 2 * i))  # calculate unique port number
-  GPU_ID=$i              # assign GPU ID
+  PORT=$((8000 + 2 * i))
+  GPU_ID=$i
   LOG_FILE="/workspace/logs/miner_$i.log"
   mkdir -p /workspace/logs
-  touch "$LOG_FILE"
-
+  
   echo "Starting miner $i on GPU $GPU_ID at port $PORT..."
-  tmux new-session -d -s "miner_$i" "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
-
-  # Wait for miner to initialize and potentially start mining
-  TIMEOUT=600 # 10 minutes timeout
-  ELAPSED=0
-  CONFIRMED=false
-  while [[ $ELAPSED -lt $TIMEOUT ]]; do
-    if grep -q '200 OK' "$LOG_FILE"; then
-      echo "Miner $i started successfully."
-      CONFIRMED=true
-      break
-    fi
-    sleep 30
-    ((ELAPSED+=30))
-  done
-
-  if [[ "$CONFIRMED" != true ]]; then
-    echo "Error starting miner $i, timeout reached."
-    tail -n 20 "$LOG_FILE"
-    exit 1  # Exit if any miner fails to start correctly
-  fi
+  tmux new-session -d -s "miner_$i" bash -c "\
+       ./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE;\
+       while ! grep -q '200 OK' $LOG_FILE; do\
+         sleep 10;\
+       done;\
+       echo 'Miner $i running.'"
+       
+  sleep 10  # Delay to ensure the miner starts before proceeding
 done
 
-echo "All miners started successfully."
+echo "All miners started."
