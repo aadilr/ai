@@ -14,18 +14,32 @@
         <button type="button" onclick="startMiners()">Start Miners</button>
     </form>
     <script>
-        function startMiners() {
-            const numGpus = document.getElementById('num_gpus').value;
-            const minerAddress = document.getElementById('miner_address').value;
-            fetch('/start-miners', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ num_gpus: numGpus, miner_address: minerAddress })
-            }).then(response => response.json())
-              .then(data => alert(data.message));
+    function startMiners() {
+    const numGpus = document.getElementById('num_gpus').value;
+    const minerAddress = document.getElementById('miner_address').value;
+    
+    fetch('https://start-miners.aadil-5ea.workers.dev/', { // Update this URL to your Cloudflare Worker endpoint
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ gpuCount: numGpus, minerAddress: minerAddress })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
         }
+        return response.json();
+    })
+    .then(data => {
+        alert('Success: ' + JSON.stringify(data));
+    })
+    .catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+        alert('Error: ' + error.message);
+    });
+}
+
     </script>
 </body>
 </html>
