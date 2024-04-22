@@ -15,11 +15,7 @@ apt-get update
 apt-get upgrade -y
 
 # Install necessary packages
-apt-get install -y sudo tmux jq bc python3-pip python3-venv lshw
-
-# Create a Python virtual environment and activate it
-python3 -m venv env
-source env/bin/activate
+apt-get install -y sudo tmux jq bc python3-pip python3-venv
 
 # Clone the miner software from the GitHub repository
 git clone https://github.com/heurist-network/miner-release
@@ -35,7 +31,7 @@ pip install -r requirements.txt
 pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
 # Create a .env file with miner IDs for multiple GPUs
-NUM_GPUS=$(lshw -C display | grep 'class: display' | wc -l)
+NUM_GPUS=$(ls /dev | grep -c 'nvidia[0-9]')
 echo "Detected $NUM_GPUS GPUs."
 for i in $(seq 0 $((NUM_GPUS - 1))); do
   echo "MINER_ID_$i=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" >> .env
