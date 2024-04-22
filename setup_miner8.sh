@@ -35,7 +35,8 @@ pip install -r requirements.txt
 pip install python-dotenv torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
 
 # Create a .env file with miner IDs for multiple GPUs
-NUM_GPUS=$(lshw -C display | grep 'physical id' | wc -l)
+NUM_GPUS=$(lshw -C display | grep 'class: display' | wc -l)
+echo "Detected $NUM_GPUS GPUs."
 for i in $(seq 0 $((NUM_GPUS - 1))); do
   echo "MINER_ID_$i=0xe3B4Edd1Be17cC655b6973277C96321c907AbeE4" >> .env
 done
@@ -55,7 +56,7 @@ for i in $(seq 0 $((NUM_GPUS - 1))); do
   tmux new-session -d -s "miner_$i" \
        "./llm-miner-starter.sh openhermes-mixtral-8x7b-gptq --miner-id-index $i --port $PORT --gpu-ids $GPU_ID 2>&1 | tee $LOG_FILE"
 
-  # Check for successful miner startup
+  # Wait for miner to initialize and potentially start mining
   TIMEOUT=600 # 10 minutes timeout
   ELAPSED=0
   while [[ $ELAPSED -lt $TIMEOUT ]]; do
